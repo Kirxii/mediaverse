@@ -24,7 +24,7 @@ export class SelectModalElement<T> {
 		this.element = parentElement.createDiv({ cls: this.cssClass })
 		this.element.id = this.getHTMLId()
 		this.element.on("click", `#${this.getHTMLId()}`, () => {
-			this.setSelected(!this.active)
+			this.setSelected(!this.selected)
 		})
 		this.element.on("mouseenter", `#${this.getHTMLId()}`, () => {
 			this.setHovered(true)
@@ -47,9 +47,9 @@ export class SelectModalElement<T> {
 	setHovered(value: boolean): void {
 		this.hovered = value
 		if (this.hovered) {
-			this.classList.add(this.hoveredClass)
+			this.addClass(this.hoveredClass)
 		} else {
-			this.classList.remove(this.hoveredClass)
+			this.removeClass(this.hoveredClass)
 		}
 	}
 
@@ -60,9 +60,9 @@ export class SelectModalElement<T> {
 	setSelected(value: boolean): void {
 		this.selected = value
 		if (this.selected) {
-			this.classList.add(this.selectedClass)
+			this.addClass(this.selectedClass)
 		} else {
-			this.classList.remove(this.selectedClass)
+			this.removeClass(this.selectedClass)
 		}
 	}
 
