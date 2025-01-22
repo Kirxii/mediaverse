@@ -1,5 +1,6 @@
 import { App, Setting, Notice, Modal, Plugin } from "obsidian";
 import { AniListAPI } from "./api/AniList"
+import { SelectModalElement } from "./modals/SelectModalElement"
 import type { mediaSource } from "./api/AniList"
 
 interface simpleQueryOutput {
@@ -37,64 +38,36 @@ export class simpleQueryModal extends Modal {
 				.setCta()
 				.onClick(() => {
 					this.close();
-					const query = `
-					query ($search: String!) {
-						Page {
-							media(search: $search, type: ANIME) {
-								id
-								title {
-									romaji
-									english
-									native
-								}
-							}
-						}
-					}
-					`
-
-					let variables = {
-						search: title
-					}
-
-					const url = "https://graphql.anilist.co"
-						let options = {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							"Accept": "application/json",
-						},
-						body: JSON.stringify({
-							query: query,
-							variables: variables,
-						}),
-					}
-
-					fetch(url, options).then(handleResponse).then(handleData)
-
-					function handleResponse(response) {
-						return response.json().then(json => {
-							return response.ok ? json : Promise.reject(json)
-						})
-					}
-
-					function handleData(data: Response) {
-						output = data.data.Page.media[0]
-						onSubmit(output);
-					}
+					const query = new AniListAPI().searchByTitle(title)
+					onSubmit(query)
 				}),
 		);
 	}
 }
 
 export class simpleModal extends Modal {
-	constructor(app: App) {
+	constructor(app: App, elements: object[]) {
 		super(app);
-		this.setTitle("AniList");
+		this.elements = elements
+	}
 
-		new Setting(this.contentEl).addDropdown(dropdown => {
-			dropdown
-			.addOption("minimize", "Minimized")
-		})
+	async onOpen(): Promise<void> {
+		const { contentEl, titleEl } = this
+
+		titleEl.createEl("h3", { text: "Result Modal" })
+		contentEl.classList.add("result-modal-test")
+		
+		const wrapper = contentEl.createDiv({ cls: "result-modal-test-wrapper" })
+		
+		let i = 0
+		for (const element of this.elements) {
+			const selectModalElement = new SelectModalElement(i, element, wrapper, this, false)
+			
+			selectModalElement.element.createEl("div", { text: element.title.native })
+			selectModalElement.element.createEl("small", { text: element.id })
+
+			i += 1
+		}
 	}
 }
 
@@ -104,7 +77,11 @@ export default class AniList_API extends Plugin {
 			id: "ani-simple-query",
 			name: "Simple query",
 			callback: () => {
-				new AniListAPI().searchByTitle("Boku no hero academia")
+				new simpleQueryModal(this.app, result => {
+					result.then((value) => {
+						new simpleModal(this.app, value).open()
+					})
+				}).open()
 				
 				/* new simpleQueryModal(this.app, result => {
 					const noticeOutput = `

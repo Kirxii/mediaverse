@@ -33,15 +33,30 @@ export class AniListAPI {
 		
 		const query = multiline`
 			query ($search: String!) {
-				Page {
+				Page(page: 1, perPage: 10) {
 					media(search: $search, type: ANIME, sort: [FORMAT, TITLE_ROMAJI]) {
 						id
 						format
+						coverImage {
+							extraLarge
+						}
 						title {
 							romaji
 							english
 							native
 						}
+						# relations {
+						#	edges {
+						#		relationType
+						#		node {
+						#			id
+						#			title {
+						#				romaji
+						#			}
+						#			type
+						#		}
+						#	}
+						#}
 					}
 				}
 			}
@@ -68,7 +83,8 @@ export class AniListAPI {
 		}
 		const data = await fetchData.json()
 
-		console.log(log(data.data.Page.media))
+		/* log(data.data.Page.media) */
+		return data.data.Page.media
 	}
 
 	async findByID(id: number) {
