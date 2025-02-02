@@ -1,4 +1,5 @@
 import { App, Setting, Notice, Modal, Plugin } from "obsidian";
+import { setTooltip } from "obsidian"
 import { AniListAPI } from "./api/AniList"
 import { SelectModalElement } from "./modals/SelectModalElement"
 import type { mediaSource } from "./api/AniList"
@@ -19,33 +20,52 @@ export class simpleSelect {
 }
 
 export class simpleQueryModal extends Modal {
-	constructor(app: App, onSubmit: (result: string) => void) {
+	private resolvePromise: (result: string) => void
+	
+	constructor(app: App) {
 		super(app);
 		this.setTitle("AniList");
+	}
 
-		let title: string;
-		let output: simpleQueryOutput;
+	openWithPromise(): Promise<object[]> {
+		return new Promise((resolve) => {
+			this.resolvePromise = resolve
+			this.open()
+		})
+	}
 
-		new Setting(this.contentEl).setName("Name").addText((text) =>
-			text.onChange((value) => {
-				title = value
-			}),
-		);
+	onOpen() {
+		const { contentEl } = this
 
-		new Setting(this.contentEl).addButton((btn) =>
+		let title: string
+		
+		new Setting(contentEl)
+			.setName("Name")
+			.addText((text) =>
+				text.onChange((value) => {
+					title = value
+				}),
+			);
+
+		new Setting(contentEl).addButton((btn) =>
 			btn
 				.setButtonText("Submit")
 				.setCta()
-				.onClick(() => {
-					this.close();
-					const query = new AniListAPI().searchByTitle(title)
-					onSubmit(query)
+				.onClick(async () => {
+					const query = await new AniListAPI().searchByTitle(title)
+					this.resolvePromise(query)
+					this.close()
 				}),
 		);
 	}
+
+	onClose() {
+		const { contentEl } = this
+		contentEl.empty()
+	}
 }
 
-export class simpleModal extends Modal {
+export class simpleResultModal extends Modal {
 	constructor(app: App, elements: object[]) {
 		super(app);
 		this.elements = elements
@@ -61,10 +81,16 @@ export class simpleModal extends Modal {
 		
 		let i = 0
 		for (const element of this.elements) {
-			const selectModalElement = new SelectModalElement(i, element, wrapper, this, false)
+			const selectModalElement = new SelectModalElement(i, element, wrapper, this, false).element
 			
-			selectModalElement.element.createEl("div", { text: element.title.native })
-			selectModalElement.element.createEl("small", { text: element.id })
+			const coverImage: HTMLDivElement = selectModalElement.createDiv({ cls: "cover-image-wrapper" })
+			coverImage.createEl("img", { cls: "cover-image", attr: { src: element.coverImage.extraLarge } })
+			
+			const primary_title: HTMLDivElement = selectModalElement.createEl("div", { text: element.title.native, cls: "primary-title" })
+			setTooltip(primary_title, element.title.native, { delay: 100, placement: "bottom" })
+			const secondary_title: HTMLDivElement = selectModalElement.createEl("div", { text: element.title.english, cls: "secondary-title" })
+			setTooltip(secondary_title, element.title.english, { delay: 100, placement: "bottom" })
+			selectModalElement.createEl("small", { text: element.id, cls: "id" })
 
 			i += 1
 		}
@@ -76,12 +102,16 @@ export default class AniList_API extends Plugin {
 		this.addCommand({
 			id: "ani-simple-query",
 			name: "Simple query",
-			callback: () => {
-				new simpleQueryModal(this.app, result => {
+			callback: async () => {
+				const modal = new simpleQueryModal(this.app)
+				const result = await modal.openWithPromise()
+				new simpleResultModal(this.app, result).open()
+				
+				/* new simpleQueryModal(this.app, result => {
 					result.then((value) => {
-						new simpleModal(this.app, value).open()
+						new simpleResultModal(this.app, value).open()
 					})
-				}).open()
+				}).open() */
 				
 				/* new simpleQueryModal(this.app, result => {
 					const noticeOutput = `

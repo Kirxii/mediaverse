@@ -29,12 +29,12 @@ export class AniListAPI {
 	}
 
 	async searchByTitle(title: string) {
-		console.log(`MedAPI: Searching for "${title}" with ${this.apiName}`)
+		console.log(`Mediaverse: Searching for "${title}" with ${this.apiName}`)
 		
 		const query = multiline`
 			query ($search: String!) {
-				Page(page: 1, perPage: 10) {
-					media(search: $search, type: ANIME, sort: [FORMAT, TITLE_ROMAJI]) {
+				Page(page: 1, perPage: 16) {
+					media(search: $search, type: ANIME, sort: [FORMAT, START_DATE]) {
 						id
 						format
 						coverImage {
@@ -79,7 +79,7 @@ export class AniListAPI {
 
 		const fetchData = await fetch(this.apiUrl, options)
 		if (!fetchData.ok) {
-			throw new Error("MedAPI: Fetch data failed, aborting")
+			throw new Error("Mediaverse: Fetch data failed, aborting")
 		}
 		const data = await fetchData.json()
 
