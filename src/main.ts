@@ -87,11 +87,12 @@ export class simpleResultModal extends Modal {
 			coverImage.createEl("img", { cls: "cover-image", attr: { src: element.coverImage.extraLarge } })
 			
 			const primary_title: HTMLDivElement = selectModalElement.createEl("div", { text: element.title.native, cls: "primary-title" })
-			setTooltip(primary_title, element.title.native, { delay: 100, placement: "bottom" })
-			const secondary_title: HTMLDivElement = selectModalElement.createEl("div", { text: element.title.english, cls: "secondary-title" })
-			setTooltip(secondary_title, element.title.english, { delay: 100, placement: "bottom" })
-			selectModalElement.createEl("small", { text: element.id, cls: "id" })
+			const secondary_title: HTMLDivElement = selectModalElement.createEl("div", { text: element.title.english ?? element.title.romaji, cls: "secondary-title" })
+			const _id: HTMLDivElement = selectModalElement.createEl("small", { text: element.id, cls: "id" })
 
+			setTooltip(primary_title, element.title.native, { delay: 100, placement: "bottom" })
+			setTooltip(secondary_title, element.title.english ?? element.title.romaji, { delay: 100, placement: "bottom" })
+			
 			i += 1
 		}
 	}
