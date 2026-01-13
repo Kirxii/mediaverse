@@ -20,3 +20,7 @@ data.json
 
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
+
+src/codegen.ts
+src/schema.graphql
+src/graphql/**
