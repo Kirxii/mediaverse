@@ -1,36 +1,47 @@
-.mediaverse-options-wrapper {
+.mediaverse-api-toggles-wrapper {
 	display: flex;
 	flex-direction: row;
 	gap: 8px;
 	margin-top: 12px;
 }
 
-.mediaverse-api-toggle-button {
+.mediaverse-api-toggle-option {
+	--mediaverse-selected-color: var(--background-modifier-active-hover);
+
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
 
-	width: calc(50% - 8px);
+	flex: 1 0 32%;
 	height: 125px;
 	background-color: var(--background-primary-alt);
 	border-radius: 16px;
 
-	transition: background-color 0.15s ease-in-out;
+	transition:
+		background-color 0.15s ease-in-out,
+		color 0.15s ease-in-out;
 
 	&:hover {
 		background-color: var(--background-modifier-hover);
 	}
 
-	&.selected {
-		background-color: var(--mediaverse-selected-color);
+	&[selected] {
+		background-color: rgba(var(--color-green-rgb), 15%);
+		border: 1px solid var(--color-green);
+		color: var(--color-green);
+
+		&>* {
+			opacity: 50%;
+		}
 	}
 
 	&>img {
 		width: 64px;
 		height: 64px;
 		border-radius: 8px;
+		transition: opacity 0.15s ease-in-out;
 	}
 
 	&>p {

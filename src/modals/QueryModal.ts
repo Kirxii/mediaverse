@@ -9,8 +9,8 @@ import {
 interface QueryModalOptionSpecs {
 	id: string;
 	name: string;
-	icon: string;
-	color: string;
+	icon?: string;
+	color?: string;
 }
 
 export class MediaverseQueryModal extends Modal {
@@ -23,6 +23,9 @@ export class MediaverseQueryModal extends Modal {
 
 	submitCallback?: (result: QueryModalData) => void;
 	closeCallback?: (err?: Error) => void;
+
+	private controller: AbortController;
+	private signal: AbortController["signal"];
 
 	constructor(plugin: Mediaverse, queryModalOpts: QueryModalOpts) {
 		queryModalOpts = Object.assign(
@@ -37,9 +40,12 @@ export class MediaverseQueryModal extends Modal {
 		this.selectedAPIs = [...(queryModalOpts.preselectedAPIs ?? [])];
 		this.query = queryModalOpts.prefilledQueryString ?? "";
 		this.isBusy = false;
+
+		this.controller = new AbortController();
+		this.signal = this.controller.signal;
 	}
 
-	keypressCallback(event: KeyboardEvent): void {
+	private keypressCallback(event: KeyboardEvent): void {
 		if (event.key === "Enter") {
 			void this.search();
 		}
@@ -66,24 +72,60 @@ export class MediaverseQueryModal extends Modal {
 		}
 	}
 
-	private createOptions(
+	private createAPIToggles(
 		parent: HTMLElement,
 		options: QueryModalOptionSpecs[],
-	): void {
+	): HTMLDivElement {
+		const wrapper: HTMLDivElement = parent.createDiv({
+			cls: "mediaverse-api-toggles-wrapper",
+		});
+
 		for (const option of options) {
-			const optionToggleButton: HTMLElement = parent.createDiv({
-				cls: "mediaverse-api-toggle-button",
+			const optionEl: HTMLElement = wrapper.createDiv({
+				cls: "mediaverse-api-toggle-option",
 				attr: { id: option.id },
 			});
 
-			optionToggleButton;
-			optionToggleButton.style.setProperty(
-				"--mediaverse-selected-color",
-				option.color,
+			if (
+				this.selectedAPIs.some((selectedAPI) => {
+					selectedAPI.id === option.id;
+				})
+			) {
+				optionEl.setAttribute("selected", "");
+			}
+
+			if (option.color) {
+				optionEl.style.setProperty(
+					"--mediaverse-selected-color",
+					option.color,
+				);
+			}
+			optionEl.createEl("img", { attr: { src: option.icon } });
+			optionEl.createEl("p", { text: option.name });
+
+			optionEl.addEventListener(
+				"click",
+				(event) => {
+					const target = event.currentTarget as HTMLElement;
+					if (target.getAttribute("selected") !== null) {
+						const attr = target.getAttributeNode(
+							"selected",
+						) as Attr;
+						target.removeAttributeNode(attr);
+						this.selectedAPIs = this.selectedAPIs.filter(
+							(selectedAPI) =>
+								selectedAPI !== target.getAttribute("id"),
+						);
+					} else {
+						target.setAttribute("selected", "");
+						this.selectedAPIs.push(target.getAttribute("id"));
+					}
+				},
+				{ signal: this.signal },
 			);
-			optionToggleButton.createEl("img", { attr: { src: option.icon } });
-			optionToggleButton.createEl("p", { text: option.name });
 		}
+
+		return wrapper;
 	}
 
 	onOpen(): Promise<void> | void {
@@ -109,25 +151,24 @@ export class MediaverseQueryModal extends Modal {
 		const optionsWrapper = contentEl.createDiv({
 			cls: "mediaverse-options-wrapper",
 		});
-		this.createOptions(optionsWrapper, [
+		this.createAPIToggles(optionsWrapper, [
 			{
 				id: "mal",
 				name: "MalAPI",
 				icon: "https://image.myanimelist.net/ui/OK6W_koKDTOqqqLDbIoPAiC8a86sHufn_jOI-JGtoCQ",
-				color: "#ff0000",
 			},
 			{
 				id: "anilist",
 				name: "AniListAPI",
 				icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/AniList_logo.svg/1200px-AniList_logo.svg.png",
-				color: "#00ff00",
 			},
 		]);
 	}
 
 	onClose(): void {
 		this.closeCallback?.();
-		const { contentEl } = this;
+		const { contentEl, controller } = this;
+		controller.abort();
 		contentEl.empty();
 	}
 }
