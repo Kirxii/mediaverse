@@ -1,4 +1,4 @@
-import { Modal, Notice, TextComponent } from "obsidian";
+import { Modal, Notice, setIcon, TextComponent } from "obsidian";
 import Mediaverse from "../main";
 import {
 	QUERY_MODAL_DEFAULT_OPTS,
@@ -100,7 +100,7 @@ export class MediaverseQueryModal extends Modal {
 					option.color,
 				);
 			}
-			optionEl.createEl("img", { attr: { src: option.icon } });
+			optionEl.createEl("img", { attr: { src: option.icon || "" } });
 			optionEl.createEl("p", { text: option.name });
 
 			optionEl.addEventListener(
@@ -133,19 +133,23 @@ export class MediaverseQueryModal extends Modal {
 
 		this.setTitle(this.title);
 
-		const placeholder = "Query media by title";
-		const queryComponent = new TextComponent(contentEl);
+		const queryComponentWrapper: HTMLElement = contentEl.createDiv({
+			cls: "mediaverse-query-component-wrapper",
+		});
+		setIcon(queryComponentWrapper, "search");
 
-		queryComponent.setPlaceholder(placeholder);
+		const queryComponent = new TextComponent(queryComponentWrapper);
+		queryComponent.setPlaceholder("Query media by title");
 		queryComponent.setValue(this.query);
 		queryComponent.onChange((value) => (this.query = value));
-		queryComponent.inputEl.style.width = "100%";
+		queryComponent.inputEl.setAttribute("id", "mediaverse-query-input");
 		queryComponent.inputEl.addEventListener(
 			"keydown",
 			this.keypressCallback.bind(this),
+			{ signal: this.signal },
 		);
 
-		contentEl.appendChild(queryComponent.inputEl);
+		queryComponentWrapper.appendChild(queryComponent.inputEl);
 		queryComponent.inputEl.focus();
 
 		const optionsWrapper = contentEl.createDiv({

@@ -1,3 +1,43 @@
+.mediaverse-query-component-wrapper {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	margin-bottom: 15px;
+
+	&>svg {
+		width: var(--input-height);
+		height: var(--input-height);
+		padding: 5px;
+		background-color: var(--background-modifier-form-field);
+		color: var(--text-normal);
+		border: var(--input-border-width) solid var(--background-modifier-border);
+		border-right: none;
+	}
+
+	@media (hover: hover) {
+
+		&>svg:hover,
+		&:has(> #mediaverse-query-input:hover)>svg,
+		&:has(> svg:hover)>#mediaverse-query-input {
+			background-color: var(--background-modifier-form-field-hover);
+			border-color: var(--background-modifier-border-hover);
+		}
+	}
+
+	&>svg:is(:active, :focus),
+	&:has(> #mediaverse-query-input:is(:active, :focus))>svg,
+	&:has(> svg:is(:active, :focus))>#mediaverse-query-input {
+		border-color: var(--background-modifier-border-focus);
+	}
+
+	&>svg:hover,
+	&:has(> #mediaverse-query-input:hover)>svg,
+	&:has(> svg:hover)>#mediaverse-query-input {
+		background-color: var(--background-modifier-form-field-hover);
+		border-color: var(--background-modifier-border-hover);
+	}
+}
+
 .mediaverse-api-toggles-wrapper {
 	display: flex;
 	flex-direction: row;
