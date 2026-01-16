@@ -94,7 +94,6 @@ export class MediaverseQueryModal extends Modal {
 				optionEl.setAttribute("selected", "");
 			}
 
-<<<<<<< HEAD
 			if (option.color) {
 				optionEl.style.setProperty(
 					"--mediaverse-selected-color",
@@ -124,33 +123,6 @@ export class MediaverseQueryModal extends Modal {
 				},
 				{ signal: this.signal },
 			);
-=======
-			optionEl.style.setProperty(
-				"--mediaverse-selected-color",
-				option.color,
-			);
-			optionEl.createEl("img", { attr: { src: option.icon } });
-			optionEl.createEl("p", { text: option.name });
-
-			optionEl.addEventListener(
-				"click",
-				(event) => {
-					const target = event.currentTarget as HTMLElement;
-					if (target.getAttribute("selected")) {
-						target.removeAttribute("selected");
-						this.selectedAPIs = this.selectedAPIs.filter(
-							(selectedAPI) => {
-								selectedAPI !== target.getAttribute("id");
-							},
-						);
-					} else {
-						target.setAttribute("selected", "");
-						this.selectedAPIs.push(target.getAttribute("id"));
-					}
-				},
-				{ signal: this.signal },
-			);
->>>>>>> 4016d6b1e397caf318cbb37a7af151aa10f2cdf4
 		}
 
 		return wrapper;
